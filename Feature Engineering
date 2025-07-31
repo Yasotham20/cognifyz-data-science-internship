@@ -1,0 +1,64 @@
+import pandas as pd
+
+# Load dataset
+df = pd.read_csv('yasotha/CognifyzTasks/Dataset .csv')
+
+# Number of rows and columns
+num_rows, num_cols = df.shape
+
+# Check for missing values
+missing_values = df.isnull().sum()
+
+# Handle missing values: for simplicity, fill numeric missing with median, categorical with mode
+for col in df.columns:
+    if df[col].isnull().sum() > 0:
+        if df[col].dtype in ['float64', 'int64']:
+            median_val = df[col].median()
+            df[col].fillna(median_val, inplace=True)
+        else:
+            mode_val = df[col].mode()[0]
+            df[col].fillna(mode_val, inplace=True)
+
+# Data type conversion: convert 'Aggregate rating' to float if not already
+if df['Aggregate rating'].dtype != 'float64':
+    df['Aggregate rating'] = pd.to_numeric(df['Aggregate rating'], errors='coerce')
+
+# Analyze distribution of target variable 'Aggregate rating'
+target_distribution = df['Aggregate rating'].value_counts(normalize=True)
+
+# Identify class imbalance: check if any class has very low proportion
+class_imbalance = target_distribution[target_distribution < 0.05]
+
+# Descriptive statistics for numerical columns
+numerical_stats = df.describe()
+
+# Distribution of categorical variables
+categorical_columns = ['Country Code', 'City', 'Cuisines']
+categorical_distribution = {}
+for col in categorical_columns:
+    if col in df.columns:
+        categorical_distribution[col] = df[col].value_counts()
+
+# Top cuisines and cities with highest number of restaurants
+top_cuisines = df['Cuisines'].value_counts().head(10)
+top_cities = df['City'].value_counts().head(10)
+
+# Output results
+print(f"Number of rows: {num_rows}")
+print(f"Number of columns: {num_cols}")
+print("Missing values per column:")
+print(missing_values)
+print("Class distribution of 'Aggregate rating':")
+print(target_distribution)
+print("Classes with less than 5% representation:")
+print(class_imbalance)
+print("\nDescriptive statistics for numerical columns:")
+print(numerical_stats)
+print("\nDistribution of categorical variables:")
+for col, dist in categorical_distribution.items():
+    print(f"\n{col} distribution:")
+    print(dist)
+print("\nTop 10 cuisines with highest number of restaurants:")
+print(top_cuisines)
+print("\nTop 10 cities with highest number of restaurants:")
+print(top_cities)
